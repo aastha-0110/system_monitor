@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Health Dashboard</title>
+    <meta http-equiv="refresh" content="10"> <!-- Auto-refresh every 10 seconds -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            padding: 20px;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 700px;
+            margin: auto;
+            box-shadow: 0px 0px 10px #ccc;
+        }
+        .alert {
+            color: red;
+            font-weight: bold;
+        }
+        .ok {
+            color: green;
+        }
+        button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        margin-top: 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        }
+        button:hover {
+        background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🖥️ System Health</h2>
+
+        <p><strong>CPU Usage:</strong> {{ health.cpu }}%</p>
+        <p><strong>Memory Usage:</strong> {{ health.memory }}%</p>
+        <p><strong>Disk Usage:</strong> {{ health.disk }}%</p>
+
+        {% if health.alerts %}
+            <div class="alert">
+                <p>⚠️ Alerts:</p>
+                <ul>
+                    {% for alert in health.alerts %}
+                        <li>{{ alert }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+            <p class="ok">✅ All systems running fine!</p>
+        {% endif %}
+
+        <hr>
+
+        <h3>📊 Usage History (Last 10 Readings)</h3>
+        <canvas id="usageChart" width="600" height="300"></canvas>
+        <form method="get" action="/download">
+            <button type="submit">⬇️ Download CSV</button>
+        </form>
+
+    </div>
+
+    <script>
+        const ctx = document.getElementById('usageChart').getContext('2d');
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ timestamps | safe }},
+                datasets: [
+                    {
+                        label: 'CPU (%)',
+                        data: {{ cpu_data | safe }},
+                        borderColor: 'red',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Memory (%)',
+                        data: {{ memory_data | safe }},
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Disk (%)',
+                        data: {{ disk_data | safe }},
+                        borderColor: 'green',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
